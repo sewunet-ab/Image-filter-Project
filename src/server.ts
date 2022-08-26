@@ -34,7 +34,7 @@ const validUrl = require('valid-url');
 app.get("/filteredimage", async ( req, res) => {
   let {image_url} = req.query;  
     (!image_url && !validUrl.isUri(image_url)) ? res.status(422).send({message:'Valid Image url is required'}) : await filterImageFromURL(image_url.toString()).then((filteredimage)=>{
-      res.sendFile(filteredimage);
+      res.status(200).sendFile(filteredimage);
       res.on(`finish`,()=>deleteLocalFiles([filteredimage]));
     })
     .catch(()=>res.status(404).send("Image Not Found"));  
