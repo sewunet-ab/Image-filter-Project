@@ -1,9 +1,9 @@
 import {deleteLocalFiles, filterImageFromURL} from './util/util';
 
 import bodyParser from 'body-parser';
-import { delay } from 'bluebird';
 import express from 'express';
-import { resolve } from 'path';
+
+const validUrl = require('valid-url');
 
 (async () => {
 
@@ -32,17 +32,15 @@ import { resolve } from 'path';
 
   /**************************************************************************** */
 app.get("/filteredimage", async ( req, res) => {
-    let { image_url } = req.query;
-    console.log(image_url);
-    if (!image_url){
-   res.status(404).send({message:'image_url is required'});
-    }
-    const filtered_image = await filterImageFromURL(image_url.toString());    
-   res.status(200).sendFile(filtered_image);
-   setTimeout(()=>{
-    deleteLocalFiles([filtered_image]);
-    8000});
-  });
+  let {image_url} = req.query;  
+    (!image_url && !validUrl.isUri(image_url)) ? res.status(404).send({message:'Image url is required'}) : await filterImageFromURL(image_url.toString()).then((filteredimage)=>{
+      res.sendFile(filteredimage);
+      res.on(`finish`,()=>deleteLocalFiles([filteredimage]));
+    })
+    .catch(()=>res.status(422).send("Image Not Found"));  
+});
+
+  
   
   //! END @TODO1
   
