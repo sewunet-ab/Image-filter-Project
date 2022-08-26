@@ -31,13 +31,14 @@ const validUrl = require('valid-url');
   //   the filtered image file [!!TIP res.sendFile(filteredpath); might be useful]
 
   /**************************************************************************** */
-app.get("/filteredimage", async ( req, res) => {
-  let {image_url} = req.query;  
-    (!image_url && !validUrl.isUri(image_url)) ? res.status(422).send({message:'Valid Image url is required'}) : await filterImageFromURL(image_url.toString()).then((filteredimage)=>{
+app.get("/filteredimage", async ( req: express.Request, res: express.Response ) => {
+    // let { image_url }:{image_url:string} = req.query; // This type of object destruction has this error, Property 'image_url' is missing in type 'ParsedQs' but required in type '{ image_url: string; }' 
+    let image_url = (req.query.image_url||'').toString();
+    (!image_url && !validUrl.isUri(image_url)) ? res.status(422).send({message:'Valid Image url is required'}) : await filterImageFromURL(image_url).then((filteredimage)=>{
       res.status(200).sendFile(filteredimage);
       res.on(`finish`,()=>deleteLocalFiles([filteredimage]));
     })
-    .catch(()=>res.status(404).send("Image Not Found"));  
+    .catch(()=>res.status(404).send("Image Not Found"));
 });
 
   
@@ -46,7 +47,7 @@ app.get("/filteredimage", async ( req, res) => {
   
   // Root Endpoint
   // Displays a simple message to the user
-  app.get( "/", async ( req, res ) => {
+  app.get( "/", async ( req: express.Request, res: express.Response) => {
     res.send("try GET /filteredimage?image_url={{}}")
   } );
   
